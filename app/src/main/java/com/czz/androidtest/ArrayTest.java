@@ -1,5 +1,7 @@
 package com.czz.androidtest;
 
+import java.util.Random;
+
 /**
  * @author : 周亚楠
  * @date : 2019/9/25 20:59
@@ -9,14 +11,18 @@ public class ArrayTest {
 
 
     public static void main(String[] args) {
-//        Integer num = arrayOne();
-//        Integer num = arrayTwo();
-//        String num = arrayThree();
-//        String num = arrFour();
-//        String num = arrayFive();
-//        String num = arraySix();
-        String num = arraySeven();
-        System.out.println(num);
+        int[] arr = new int[100000];
+        for (int i = 0; i < 100000; i++) {
+//            模拟随机分布的数组
+            arr[i] = new Random().nextInt();
+//            模拟倒序分布的数组
+//            arr[i] = 100000-i;
+//            模拟已经排序好的分组
+//            arr[i] = i;
+        }
+        insertSort1(arr);
+        insertSort2(arr);
+        shellSort(arr);
     }
 
     //寻找数组中第二小的元素
@@ -54,7 +60,7 @@ public class ArrayTest {
     //找到数组中第一个不重复出现的整数
     public static Integer arrayTwo() {
         int[] arr = {1, 1, 1, 8, 8, 2, 2, 0};
-        int tep = 0;
+        int tem = 0;
         int count = 0;
 
         if (arr.length == 1) {
@@ -63,14 +69,14 @@ public class ArrayTest {
 
             for (int i = 0; i < arr.length; i++) {
                 if (i == 0) {
-                    tep = arr[0];
+                    tem = arr[0];
                     count = 1;
                 } else {
-                    if (arr[i] != tep) {
+                    if (arr[i] != tem) {
                         if (count == 1) {
-                            return tep;
+                            return tem;
                         } else {
-                            tep = arr[i];
+                            tem = arr[i];
                             count = 1;
                         }
                     } else {
@@ -81,7 +87,7 @@ public class ArrayTest {
 
             }
             if (count == 1) {
-                return tep;
+                return tem;
             } else {
                 return null;
             }
@@ -92,14 +98,14 @@ public class ArrayTest {
     public static String arrayThree() {
         int[] arr_one = {1, 4, 6, 8};
         int[] arr_two = {2, 5, 6, 9};
-        int tep_index = -1;
+        int tem_index = -1;
 
         int m = arr_one.length;
         int n = arr_two.length;
         int[] arr = new int[m + n];
         for (int i = 0; i < arr.length; i++) {
-            if (i == tep_index) {
-                tep_index = -1;
+            if (i == tem_index) {
+                tem_index = -1;
                 continue;
             }
             if (arr_one[i] < arr_two[i]) {
@@ -109,7 +115,7 @@ public class ArrayTest {
             } else {
                 arr[i] = arr_one[i];
                 arr[i + i] = arr_one[i];
-                tep_index = i + 1;
+                tem_index = i + 1;
             }
         }
 
@@ -212,9 +218,8 @@ public class ArrayTest {
     }
 
     //希尔排序
-    public static String arraySeven() {
-
-        int[] array = {49, 38, 65, 97, 76, 13, 27, 49, 78, 34, 12, 64, 1, 3, 4, 1123, 1232};
+    public static String shellSort(int[] array) {
+        long start = System.currentTimeMillis();
         //希尔排序
         int gap = array.length;
         while (true) {
@@ -233,7 +238,8 @@ public class ArrayTest {
             if (gap == 1)
                 break;
         }
-
+        long end = System.currentTimeMillis();
+        System.out.println("希尔排序排序用时==" + (end - start));
         return getArrayString(array);
     }
 
@@ -280,11 +286,13 @@ public class ArrayTest {
 
 
     /**
-     * 插入排序：数组分为有序和无序两部分，将无序部分的元素一次插入到有序部分的适当位置，为了给待插入的
+     * 插入排序：
+     * 类型：是一种稳定的内部排序。
+     * 思路：将序列分为有序和无序两部分，将无序部分的元素依次插入到有序部分的适当位置，为了给待插入的
      * 元素留出位置，我们需要在插入之前，将插入位置之后的所有元素都向后移动一位。
-     * 分为6个步骤
+     * 步骤：
      * 1：将第一个元素视作有序的部分
-     * 2：取出 下一个元素，在已经排序好的序列中从后向前扫描
+     * 2：取出下一个元素，在已经排序好的序列中从后向前扫描
      * 3：如果已排序的元素大于该新元素，继续向前扫描
      * 4：重复步骤3，直到找到已排序的元素小于或等与该新元素
      * 5: 将新元素放在该已排序好的元素之后
@@ -292,16 +300,60 @@ public class ArrayTest {
      *
      * 动画效果图：https://images.morethink.cn/28749729-ca072084-7503-11e7-881c-92aa915ce369.gif
      *
-     *
-     *
-     *
-     * @param arr
-     * @return
+     * 下面有几种实现方式↓↓↓↓↓↓↓
      */
 
+    /**
+     * 取出已排序的元素序列后边第一个未排序元素（下标记为j），用临时变量保存起来
+     * 通过比较待排序元素与arr[j-1]大小，以arr[j]=arr[j-1]的方式，将已排序的其他元素向后移动一位
+     * 最后找到合适位置将临时变量保存的未排序元素保存起来
+     */
+    public static String insertSort1(int[] arr) {
+        long start = System.currentTimeMillis();
+        for (int i = 1; i < arr.length; i++) {  //执行次数：n
+            int tem = arr[i];   //执行次数：n
+            int j = i;  //执行次数：n
+
+            //下方tem < arr[j - 1]易出错，容易写成arr[j]< arr[j - 1]
+            while (j > 0 && tem < arr[j - 1]) { //执行次数：最大n 最小1
+                arr[j] = arr[j - 1];    //执行次数：最大n 最小1
+                j--;    //执行次数：最大n 最小1
+            }
+
+            arr[j] = tem;//执行次数：n
+
+        }
+        long end = System.currentTimeMillis();
+        System.out.println("insertSort1排序用时==" + (end - start));
+        //执行次数：最高：n+n+n+n*(n+n+n)+n=12n²  最低：n+n+n+n*(1+1+1)+n=12n
+        return getArrayString(arr);
+    }
+
+    /**
+     * 借鉴冒泡排序
+     * 内层for循环是对已排序好的再加一个当前正在找位置的元素组成的序列的逆序遍历,从最后一位开始跟前一个元素比较，若比前一位小，就交换
+     */
+    public static String insertSort2(int[] arr) {
 
 
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < arr.length - 1; i++) {  //执行次数：n
+            for (int j = i + 1; j > 0; j--) {   //执行次数：n
+                if (arr[j] < arr[j - 1]) {  //执行次数：1
+                    int tem = arr[j];   //执行次数：最大1 最小0
+                    arr[j] = arr[j - 1];    //执行次数：最大1 最小0
+                    arr[j - 1] = tem;   //执行次数：最大1 最小0
+                }
+            }
 
+            //执行次数：最多：n*(n+1+1+1+1)=n²+4n 最少：n*(n+1)=n²+n
+
+
+        }
+        long end = System.currentTimeMillis();
+        System.out.println("insertSort2排序用时==" + (end - start));
+        return getArrayString(arr);
+    }
 
 
     private static String getArrayString(int[] arr) {
