@@ -1,7 +1,5 @@
 package com.czz.androidtest;
 
-import java.util.Random;
-
 /**
  * @author : 周亚楠
  * @date : 2019/9/25 20:59
@@ -11,20 +9,24 @@ public class ArrayTest {
 
 
     public static void main(String[] args) {
-        int[] arr = new int[100000];
-        for (int i = 0; i < 100000; i++) {
+        int length = 100000;
+        int[] arr = new int[length];
+        for (int i = 0; i < length; i++) {
 //            模拟随机分布的数组
-            arr[i] = new Random().nextInt();
+//            arr[i] = Math.abs(new Random().nextInt(length));
+//            System.out.println(arr[i]);
 //            模拟倒序分布的数组
-//            arr[i] = 100000-i;
+//            arr[i] = length-i;
 //            模拟已经排序好的分组
-//            arr[i] = i;
+            arr[i] = i;
         }
 
-        insertSort1(arr);
-        insertSort2(arr);
+//        insertSort1(arr);
+//        insertSort2(arr);
         shellSort(arr);
-
+//        selectionSort(arr);
+//        heapSort(arr);
+        bubbleSort(arr);
     }
 
     //寻找数组中第二小的元素
@@ -157,35 +159,35 @@ public class ArrayTest {
     }
 
 
-    //选择排序
-    public static String arrayFive() {
-//        选择排序算法的原理如下：
-//        寻找未排序元素中最小的，放到已排序队列的开始。
-//        继续寻找未排序中最小的，放到已排序队列的尾部。
-//        重复上一步，直到排序完毕。
-//
+    /**
+     * 选择排序：
+     * 非稳定排序：在一趟选择，如果一个元素比当前元素小，而该小的元素又出现在一个和当前元素相等的元素后面，那么交换后稳定性就被破坏了。
+     * 原理：
+     * 1：分为已排序队列和未排序队列，先寻找未排序队列中最小的，放在已排序队列的开始。
+     * 2：在未排序队列中找最小的，放在已排序队列的队尾
+     * 3: 重复上一步，直到排序完毕
+     */
+    public static void selectionSort(int[] array) {
 
-        int[] arr = {1, 2, 3, 4, 5, 6, 7};
-
-        for (int i = 0; i < arr.length - 1; i++) {
+        int[] arr = array.clone();
+        for (int i = 0; i < arr.length; i++) {
             int min = i;
             for (int j = i + 1; j < arr.length; j++) {
-                if (arr[j] > arr[min]) {
+                if (arr[j] < arr[min]) {
                     min = j;
                 }
-            }
 
-            if (min != i) {
-                int tem = arr[min];
-                arr[min] = arr[i];
-                arr[i] = tem;
             }
-
-            String str_array = getArrayString(arr);
-            System.out.println(str_array);
+            if (i != min) {
+                int tem = arr[i];
+                arr[i] = arr[min];
+                arr[min] = tem;
+            }
 
         }
-        return getArrayString(arr);
+//        String string = getArrayString(arr);
+//        System.out.println("selectionSort排序结果：" + string);
+//        return string;
     }
 
 
@@ -285,7 +287,7 @@ public class ArrayTest {
      * 通过比较待排序元素与arr[j-1]大小，以arr[j]=arr[j-1]的方式，将已排序的其他元素向后移动一位
      * 最后找到合适位置将临时变量保存的未排序元素保存起来
      */
-    public static String insertSort1(int[] array) {
+    public static void insertSort1(int[] array) {
         int[] arr = array.clone();
         long start = System.currentTimeMillis();
         for (int i = 1; i < arr.length; i++) {  //执行次数：n
@@ -305,16 +307,15 @@ public class ArrayTest {
         System.out.println("insertSort1排序用时==" + (end - start));
         //执行次数：最高：n+n+n+n*(n+n+n)+n=12n²  最低：n+n+n+n*(1+1+1)+n=12n
 
-        String string = getArrayString(arr);
+//        String string = getArrayString(arr);
 //        System.out.println(string);
-        return string;
     }
 
     /**
      * 借鉴冒泡排序，此直接插入方式没insertSort1好，知道即可。
      * 内层for循环是对已排序好的再加一个当前正在找位置的元素组成的序列的逆序遍历,从最后一位开始跟前一个元素比较，若比前一位小，就交换
      */
-    public static String insertSort2(int[] array) {
+    public static void insertSort2(int[] array) {
         int[] arr = array.clone();
         long start = System.currentTimeMillis();
         for (int i = 0; i < arr.length - 1; i++) {  //执行次数：n
@@ -334,7 +335,7 @@ public class ArrayTest {
         System.out.println("insertSort2排序用时==" + (end - start));
 //        String string = getArrayString(arr);
 //        System.out.println(string);
-        return getArrayString(arr);
+
     }
 
 
@@ -351,7 +352,7 @@ public class ArrayTest {
      * 之后随着增量的递减，分组的数量会越来越少，数组也渐渐变得有序，最后增量为1的时候，对整个数组进行直接插入排序，由插入排序特点二可知：
      * 直接插入排序在数组本身有序的情况下时间复杂度为n，所以也很快。
      */
-    public static String shellSort(int[] arr) {
+    public static void shellSort(int[] arr) {
         int[] array = arr.clone();
         long start = System.currentTimeMillis();
         //gap就是间隔，就是用来将每相差gap个下标的元素各个元素提出来单独插入排序。
@@ -388,10 +389,93 @@ public class ArrayTest {
         }
         long end = System.currentTimeMillis();
         System.out.println("希尔排序排序用时==" + (end - start));
-        String string = getArrayString(array);
+//        String string = getArrayString(array);
 //        System.out.println(string);
-        return getArrayString(array);
+
     }
+
+
+    /**
+     * 堆排序：
+     * 类型：非稳定排序。同时由于多次任意下标相互交换位置, 相同元素之间原本相对的顺序被破坏了, 因此, 它是不稳定的排序。
+     * 思路：将序列认为两部分，后半部分为已排序（从0个开始）
+     * 1：构建大顶堆或小顶堆
+     * 2：将堆顶元素与未排序序列最后一位交换，已排序数量+1
+     * 3：剩下未排序重复1~2
+     */
+    public static void heapSort(int[] array) {
+        int[] a = array.clone();
+        long start = System.currentTimeMillis();
+        for (int i = a.length - 1; i > 0; i--) {
+            max_heapify(a, i);
+
+            //堆顶元素(第一个元素)与Kn交换
+            int temp = a[0];
+            a[0] = a[i];
+            a[i] = temp;
+        }
+        long end = System.currentTimeMillis();
+        System.out.println("heapSort排序用时==" + (end - start));
+//        String string = getArrayString(a);
+//        System.out.println("堆排序结果==" + string);
+    }
+
+    /***
+     *
+     *  将数组堆化
+     *  i = 最后一个非叶子节点。
+     *  从最后一个非叶子节点开始即可。无需从最后一个叶子节点开始。
+     *  叶子节点可以看作已符合堆要求的节点，根节点就是它自己且自己以下值为最大。
+     *
+     * @param a
+     * @param n
+     */
+    public static void max_heapify(int[] a, int n) {
+        int child;
+        for (int i = (n - 1) / 2; i >= 0; i--) {
+            //左子节点位置
+            child = 2 * i + 1;
+            //右子节点存在且大于左子节点，child变成右子节点
+            if (child != n && a[child] < a[child + 1]) {
+                child++;
+            }
+            //交换父节点与左右子节点中的最大值
+            if (a[i] < a[child]) {
+                int temp = a[i];
+                a[i] = a[child];
+                a[child] = temp;
+            }
+        }
+    }
+
+    public static void bubbleSort(int[] array) {
+        int[] a = array.clone();
+        long start = System.currentTimeMillis();
+
+        int tem;//将变量提出来避免重复生命
+        boolean isChange;//内循环是否发生元素交互
+
+        //外层循环控制比较的次数
+        for (int i = 0; i < a.length - 1; i++) {
+            isChange = false;
+            //内层循环控制到达位置
+            for (int j = 0; j < a.length - i - 1; j++) {
+                //前面的元素比后面大就交换
+                if (a[j] > a[j + 1]) {
+                    tem = a[j];
+                    a[j] = a[j + 1];
+                    a[j + 1] = tem;
+                    isChange = true;
+                }
+            }
+            if (!isChange) {
+                break;
+            }
+        }
+        long end = System.currentTimeMillis();
+        System.out.println("bubbleSort排序用时==" + (end - start));
+    }
+
 
 
     private static String getArrayString(int[] arr) {
