@@ -1,5 +1,9 @@
 package com.czz.androidtest;
 
+import java.util.Arrays;
+import java.util.Random;
+import java.util.Stack;
+
 /**
  * @author : 周亚楠
  * @date : 2019/9/25 20:59
@@ -9,24 +13,28 @@ public class ArrayTest {
 
 
     public static void main(String[] args) {
-        int length = 100000;
+        int length = 100;
         int[] arr = new int[length];
         for (int i = 0; i < length; i++) {
 //            模拟随机分布的数组
-//            arr[i] = Math.abs(new Random().nextInt(length));
+            arr[i] = Math.abs(new Random().nextInt(length));
 //            System.out.println(arr[i]);
 //            模拟倒序分布的数组
 //            arr[i] = length-i;
 //            模拟已经排序好的分组
-            arr[i] = i;
+//            arr[i] = i;
         }
 
 //        insertSort1(arr);
 //        insertSort2(arr);
-        shellSort(arr);
+//        shellSort(arr);
 //        selectionSort(arr);
 //        heapSort(arr);
-        bubbleSort(arr);
+//        bubbleSort(arr);
+//        quickSort(arr);
+//        sortByStack(arr);
+//        mergeSort(arr);
+        baseSort(arr);
     }
 
     //寻找数组中第二小的元素
@@ -448,6 +456,159 @@ public class ArrayTest {
         }
     }
 
+
+    //  =============================  快速排序 系列开始================================
+
+    /**
+     * 快速排序
+     * 类型：非稳定排序
+     * 思路：挖坑填数与分治
+     * 步骤：
+     * 1：选择一个基数，将其提到临时变量，一般以序列的第一个值为基数
+     * 2：从序列尾部开始向前找比基数小的值，一直到找到为止，记为位置i,将该值放到基数占位的地方
+     * 3：从序列头部开始向后找比基数大的值，一直到找到为止，记为位置j，将该值放到上一步的取出的位置
+     * 4：重复2~3直到两个位置i=j，将基数赋值到此位置，此时序列被所选基数分成左边小于，右边大于的形态
+     * 5：将序列出基数外的两边分别再在使用1~4步进行排序
+     *
+     * @param array
+     */
+
+    public static void quickSort(int[] array) {
+        int[] arr = array.clone();
+        quick(0, arr.length - 1, arr);
+    }
+
+    public static void quick(int low, int high, int[] array) {
+
+
+        //注意点1：退出点 ，无此处代码将会出现StackOverflowError，因为一直递归调用
+        if (low >= high) {
+            return;
+        }
+
+
+        int pivot = array[low];
+        int i = low;
+        int j = high;
+        while (i < j) {
+            while (i < j && array[j] >= pivot) {
+                j--;
+            }
+            //注意点二：次数我一开始写错了成 array[low] = array[j];
+            array[i] = array[j];
+            while (i < j && array[i] <= pivot) {
+                i++;
+            }
+            array[j] = array[i];
+        }
+
+        array[i] = pivot;
+        quick(low, i - 1, array);
+        quick(i + 1, high, array);
+        String string = getArrayString(array);
+        System.out.println("简单快排结果==" + string);
+
+    }
+
+
+    /**
+     * 数组较小时效率低于直接插入，所以可以使用栈来待体递归或者针对数组较小的部分使用插入排序（n²）
+     * 通过栈替代递归实现快排
+     * 思路：利用栈先进后出的特点代替递归保存分区的头尾指针（坐标）
+     *
+     * @param array
+     */
+    public static void sortByStack(int[] array) {
+        int[] a = array.clone();
+        Stack<Integer> stack = new Stack<Integer>();
+
+        //初始状态的左右指针入栈
+        stack.push(0);
+        stack.push(a.length - 1);
+        while (!stack.isEmpty()) {
+            //出栈进行划分
+            int high = stack.pop();
+            int low = stack.pop();
+
+            int pivotIndex = partition(a, low, high);
+
+            //保存中间变量
+            if (pivotIndex > low) {
+                stack.push(low);
+                stack.push(pivotIndex - 1);
+            }
+            if (pivotIndex < high && pivotIndex >= 0) {
+                stack.push(pivotIndex + 1);
+                stack.push(high);
+            }
+        }
+    }
+
+    private static int partition(int[] a, int low, int high) {
+        if (low >= high) return -1;
+        int left = low;
+        int right = high;
+        //保存基准的值
+        int pivot = a[left];
+        while (left < right) {
+            //从后向前找到比基准小的元素，插入到基准位置中
+            while (left < right && a[right] >= pivot) {
+                right--;
+            }
+            a[left] = a[right];
+            //从前往后找到比基准大的元素
+            while (left < right && a[left] <= pivot) {
+                left++;
+            }
+            a[right] = a[left];
+        }
+        //放置基准值，准备分治递归快排
+        a[left] = pivot;
+        return left;
+    }
+
+    /**
+     * 数组基本有序时，会一直出现分区之后一边很少一边很多的情况，这样整体看下来近乎冒泡排序，时间复杂度由O（nlog2n）退化到O(n²)
+     * 优化方式：随机取基准：（利用Random函数将第一个索引的值与分区内随机一个交换）
+     *          三者取中法：取左端、中间、右端三个数，然后进行排序，将中间数作为枢纽值。
+     * @param array
+     */
+
+    /**
+     * 数组重复数据很多时，一个元素全部重复的子数组就不需要继续排序了，但我们的算法还会继续将它切分为更小的数组。
+     * 在有大量重复元素的情况下，快速排序的递归性会使元素全部重复的子数组经常出现。
+     * 优化方式：三向快速排序
+     * 思路：将数组分为三部分，大于小于等于基准值，分别位列前中后位置；每次一个元素与基数比较的时候，大于或小于基数就交换并更新三区分界位置，等于的时候不做交换进入下个元素的比较。
+     * 这样下来就会使重复的数据处在数组中间并避免做无用的处理。
+     */
+    public static void sortThreeWay(int[] a, int lo, int hi) {
+        if (lo >= hi) {
+            return;
+        }
+        int v = a[lo], lt = lo, i = lo + 1, gt = hi;
+        while (i <= gt) {
+            if (a[i] < v) {
+                swap(a, i++, lt++);
+            } else if (a[i] > v) {
+                swap(a, i, gt--);
+            } else {
+                i++;
+            }
+        }
+        sortThreeWay(a, lo, lt - 1);
+        sortThreeWay(a, gt + 1, hi);
+    }
+
+    private static void swap(int[] a, int i, int j) {
+        int t = a[i];
+        a[i] = a[j];
+        a[j] = t;
+    }
+
+
+    //  =============================  快速排序 系列结束================================
+
+
     public static void bubbleSort(int[] array) {
         int[] a = array.clone();
         long start = System.currentTimeMillis();
@@ -476,6 +637,114 @@ public class ArrayTest {
         System.out.println("bubbleSort排序用时==" + (end - start));
     }
 
+
+    //归并所需的辅助数组
+    private static int[] aux;
+
+    public static void mergeSort(int[] array) {
+        int[] a = array;
+        //一次性分配空间
+        aux = new int[a.length];
+        sort(a, 0, a.length - 1);
+    }
+
+    public static void sort(int[] a, int low, int high) {
+        if (low >= high) {
+            return;
+        }
+        int mid = (low + high) / 2;
+        //将左半边排序
+        sort(a, low, mid);
+        //将右半边排序
+        sort(a, mid + 1, high);
+        merge(a, low, mid, high);
+    }
+
+    /**
+     * 该方法先将所有元素复制到aux[]中，然后在归并会a[]中。方法咋归并时(第二个for循环)
+     * 进行了4个条件判断：
+     * - 左半边用尽(取右半边的元素)
+     * - 右半边用尽(取左半边的元素)
+     * - 右半边的当前元素小于左半边的当前元素(取右半边的元素)
+     * - 右半边的当前元素大于等于左半边的当前元素(取左半边的元素)
+     *
+     * @param a
+     * @param low
+     * @param mid
+     * @param high
+     */
+    public static void merge(int[] a, int low, int mid, int high) {
+        //将a[low..mid]和a[mid+1..high]归并
+        int i = low, j = mid + 1;
+        for (int k = low; k <= high; k++) {
+            aux[k] = a[k];
+        }
+
+        for (int k = low; k <= high; k++) {
+            if (i > mid) {
+                a[k] = aux[j++];
+            } else if (j > high) {
+                a[k] = aux[i++];
+            } else if (aux[j] < aux[i]) {
+                a[k] = aux[j++];
+            } else {
+                a[k] = aux[i++];
+            }
+        }
+        String string = getArrayString(a);
+        System.out.println("归并结果==" + string);
+    }
+
+    /**
+     * 基数排序
+     * 类型：不需要比较的稳定排序（通过取余取模放置到二维数组中）
+     * 思路：
+     * 1 数字有个十百千位，从低位向高位开始排序，每排一次序就把元素放在一个二维数组（桶）中:buckets[基数][该基数出现次数]
+     * 2 每排一次就从桶底开始取出来，这样取出来的就是按照当前基数排序好的
+     * 3 基数上升一个（比如：由个位到十位），然后重复1~2
+     * @param arr
+     */
+    public static void baseSort(int[] arr) {
+        if (arr.length <= 1) return;
+
+        //取得数组中的最大数，并取得位数
+        int max = 0;
+        for (int i = 0; i < arr.length; i++) {
+            if (max < arr[i]) {
+                max = arr[i];
+            }
+        }
+        int maxDigit = 1;
+        while (max / 10 > 0) {
+            maxDigit++;
+            max = max / 10;
+        }
+        //申请一个桶空间
+        int[][] buckets = new int[10][arr.length];
+        int base = 10;
+
+        //从低位到高位，对每一位遍历，将所有元素分配到桶中
+        for (int i = 0; i < maxDigit; i++) {
+            int[] bktLen = new int[10];        //存储各个桶中存储元素的数量
+
+            //分配：将所有元素分配到桶中
+            for (int j = 0; j < arr.length; j++) {
+                int whichBucket = (arr[j] % base) / (base / 10);
+                buckets[whichBucket][bktLen[whichBucket]] = arr[j];
+                bktLen[whichBucket]++;
+            }
+
+            //收集：将不同桶里数据挨个捞出来,为下一轮高位排序做准备,由于靠近桶底的元素排名靠前,因此从桶底先捞
+            int k = 0;
+            for (int b = 0; b < buckets.length; b++) {
+                for (int p = 0; p < bktLen[b]; p++) {
+                    arr[k++] = buckets[b][p];
+                }
+            }
+            System.out.println("Sorting: " + Arrays.toString(arr));
+            base *= 10;
+        }
+    }
 
 
     private static String getArrayString(int[] arr) {
